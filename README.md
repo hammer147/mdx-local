@@ -1,38 +1,101 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Using MDX in Next.js 13 with TailwindCSS
 
-## Getting Started
+[guide from Next.js](https://beta.nextjs.org/docs/guides/mdx)
 
-First, run the development server:
+## 1. Install dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+npm i @next/mdx @types/mdx
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 2. Create mdx-components.tsx in the root of your application
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```tsx
+import type { MDXComponents } from 'mdx/types'
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+// This file allows you to provide custom React components
+// to be used in MDX files. You can import and use any
+// React component you want, including components from
+// other libraries.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+// This file is required to use MDX in `app` directory.
+export function useMDXComponents(components: MDXComponents): MDXComponents {
+  return {
+    // Allows customizing built-in components, e.g. to add styling.
+    // h1: ({ children }) => <h1 style={{ fontSize: "100px" }}>{children}</h1>,
+    ...components
+  }
+}
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## 3. Update next.config.js
 
-## Learn More
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    appDir: true,
+    mdxRs: true
+  }
+}
 
-To learn more about Next.js, take a look at the following resources:
+const withMDX = require('@next/mdx')()
+module.exports = withMDX(nextConfig)
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 4. Create a new hello.mdx file in the `app` directory
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+```mdx
+# Hello, Next.js!
 
-## Deploy on Vercel
+You can import and use React components in MDX files.
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 5. Import the MDX file in a page
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+```tsx
+import HelloWorld from './hello.mdx'
+
+export default function Page() {
+  return <HelloWorld />
+}
+```
+
+## 6. TailwindCSS
+
+1. [install tailwindcss](https://tailwindcss.com/docs/guides/nextjs)
+2. install prettier plugin
+
+    ```bash
+    npm i -D prettier prettier-plugin-tailwindcss
+    ```
+
+3. install typography plugin
+
+    ```bash
+    npm i -D @tailwindcss/typography
+    ```
+
+4. update tailwind.config.js
+
+    ```js
+    /** @type {import('tailwindcss').Config} */
+
+    module.exports = {
+    content: ['./src/**/*.{js,ts,jsx,tsx,mdx}', './mdx-components.tsx'],
+    theme: {
+    extend: {}
+    },
+    plugins: [require('@tailwindcss/typography')]
+    }
+    ```
+
+5. add prose class to mdx
+  
+    ```mdx
+    # Hello, Next.js!
+    
+    You can import and use React components in MDX files.
+
+    export default ({ children }) => <div className='prose'>{children}</div>
+    ```
